@@ -1,0 +1,44 @@
+
+1 Before loop:
+    - init data 
+2 Create Loop: 
+    - create while loop 
+    - will continue until player is dead 
+3 While loop:
+    - background data: 
+        - render bg_image, clouds
+        - generate sounds
+
+    - update 
+        - update player items 
+        - spawn enemies 
+        - handle levels:
+            - level timer -= 1 
+            - Loads the new level’s data and finds relevant markers
+            - Manages player effects, removes non-permanent effects, and resets player state for the new level.
+            - Updates and saves the card deck, adjusts game difficulty and spawn rates.
+        - update scroll 
+    - render tiles/player 
+    - handle item collisions 
+    - Handles the spawning and collection of items 
+    - Add new items to 
+    - Update/Render Entities 
+        -  Iterates over a list of entities to perform various actions based on their type and effects.
+        - Entity Removal: Handles entity removal if health is depleted.
+        - Entity Actions: Updates AI for entities based on their type and behavior (e.g., lasers, ghost flowers, crashers).
+        - Particles and Effects: Adds particles and effects for non-player entities (e.g., explosions, projectiles).
+    - handle shield 
+    - handle drones
+        - differnet drones have different implementations
+    - handle projectiles and enemy_proectiles 
+        - Projectiles move based on their velocity unless the game is paused.
+        - Special Projectiles: bombs, etc 
+        - They can also collide with entities, causing damage and applying forces based on the projectile's type
+        - Visual Effects
+    - handle different particles types
+        - cirlces
+        - circle particles 
+        - sparks 
+        - particles with images 
+    - if level is done, point to portal to enter next stage 
+    - GUI 
