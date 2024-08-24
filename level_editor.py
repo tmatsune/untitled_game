@@ -1,5 +1,5 @@
 import pygame as pg, sys, os 
-import src.mouse as m
+import inputs as m
 import src.settings as s
 import src.utils as utils 
 import src.tilemap as tilemap

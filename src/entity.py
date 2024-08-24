@@ -46,9 +46,9 @@ class Entity:
         if self.flip:
             image = pg.transform.flip(image, self.flip, False)
 
-
-        pg.draw.rect(surf, (255,0,0), (self.pos[0] - offset[0], self.pos[1] - offset[1], s.CELL_SIZE, s.CELL_SIZE), 1)
         surf.blit(image, (self.pos[0] - offset[0], self.pos[1] - offset[1]))
+        pg.draw.rect(surf, (255,0,0), (self.pos[0] - offset[0], self.pos[1] - offset[1], s.CELL_SIZE, s.CELL_SIZE), 1) # TEST
+        pg.draw.circle(surf, (255, 0, 0), (self.center()[0] - offset[0], self.center()[1] - offset[1]), 1)             # TEST
 
     def rect(self):
         return pg.Rect(self.pos[0], self.pos[1], self.size[0], self.size[1])
@@ -102,20 +102,26 @@ class Entity:
         if self.jumps > 0:
             self.vel[1] = self.jump_scale
             self.jumps -= 1
-    
 
+    def damage(self, amount, force):
+        pass
+    
 class Player(Entity):
     def __init__(self, app, pos, size, type, animated=None) -> None:
         super().__init__(app, pos, size, type, animated)
+        self.health = 100
 
+    # if flip: left 
     def update(self):
         super().update()
 
-        if self.app.inputs[1]: self.flip = False
-        elif self.app.inputs[0]: self.flip = True
+        if self.app.user_inputs[1]: self.flip = False
+        elif self.app.user_inputs[0]: self.flip = True
 
+        # ---- MOVEMENT 
+        if self.app.inputs.input_just_clicked('up'): self.jump()
         self.vel[1] = min(10, self.vel[1] + 1)
-        self.vel[0] = (self.app.inputs[1] - self.app.inputs[0]) * self.speed
+        self.vel[0] = (self.app.inputs.input_active('right') - self.app.inputs.input_active('left')) * self.speed
 
         nearby_rects = self.app.tile_map.get_nearby_tiles(self.pos)
         collisions = self.movement(self.vel, nearby_rects)
@@ -123,6 +129,41 @@ class Player(Entity):
         if collisions['down']:
             self.vel[1] = 0 
             self.jumps = self.max_jumps
+
+        # ---- ATTACK 
+        if self.app.mouse.left_just_clicked():
+            self.attack_1(self.flip)
+        elif self.app.mouse.right_just_clicked():
+            self.attack_2(self.flip)
+    
+    def attack_1(self, left):
+        if left: 
+            self.app.projectiles.append([ 
+                [self.center()[0]-4, self.center()[1]],
+                [-8, 0],
+                'player_attack_1',
+                self.type,
+                None,
+            ])
+        else: 
+            self.app.projectiles.append([
+                [self.center()[0]+4, self.center()[1]],
+                [8, 0],
+                'player_attack_1',
+                self.type,
+                None,
+            ])
+
+    def attack_2(self, left):
+        if left:
+            print('special left')
+        else:
+            print('special right')
+
+
+class Entities(Entity):
+    def __init__(self, app, pos, size, type, animated=None) -> None:
+        super().__init__(app, pos, size, type, animated)
 
 
 
