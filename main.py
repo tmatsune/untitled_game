@@ -39,10 +39,18 @@ class App:
         self.circles = []
         self.circle_particles = [] 
         self.sparks = []
+        self.font_particles = [] 
 
         self.offset = [0,0] 
         self.user_inputs = [False, False, False, False]
         self.edges = [s.inf, s.n_inf, s.inf, s.n_inf]  # x, -x, y, -y
+
+        # ---- HASH VARS 
+        self.fonts = {
+            'basic': f'{s.FONTS_PATH}basic.ttf',
+            'font_0': f'{s.FONTS_PATH}font_0.ttf',
+            'font_1': f'{s.FONTS_PATH}font_1.ttf',
+        }
 
         # ---- CLASSES 
         self.tile_map = tilemap.TileMap(self)
@@ -288,8 +296,9 @@ def main_game_loop():
             proj[0][1] += proj[1][1]
 
             if proj[3] == 'player':
-                for entity in app.entities:
-                    pass
+                pass
+                #for entity in app.entities:
+                
             if proj[2] in {'player_attack_1'}:
                 pg.draw.rect(display, (230, 230, 0), (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1], 1,1))
                 player_attack_rect = pg.Rect([proj[0][0], proj[0][1], 1, 1])
@@ -302,7 +311,10 @@ def main_game_loop():
                             hit_spark = utils.add_hit_spark(proj[0], ang)
                             app.sparks.append(hit_spark)
                         entity.take_damage(app.player.attack_1_damage, -1 if proj[1][0] < 0 else 1)
+
+                        app.font_particles.append([proj[0].copy(), [0, -1], 'basic', str(app.player.attack_1_damage), 6, s.WHITE, 1.4, .92])
                         remove_list.append(proj)
+
 
             if proj[4]:
                 display.blit(proj[4], (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1]))
@@ -344,12 +356,34 @@ def main_game_loop():
             color = spark[8] if spark[8] else (247, 180, 0)
             pg.draw.polygon(display, color, points)
 
+        # ---- RENDER FONT PARTICLES
+
+
+
+        # [ pos, vel, type, text, size, color, speed, speed_decay ]
+        for part in app.font_particles.copy():
+            part[0][0] += part[1][0] * part[6]
+            part[0][1] += part[1][1] * part[6]
+        
+            part[6] *= part[7]
+
+            part_text = utils.text_surface_1(f'{part[3]}', part[4], False, part[5], font_path=app.fonts[part[2]])
+            display.blit(part_text, (part[0][0] - app.offset[0], part[0][1] - app.offset[1]))
+
+            if part[6] < .1:
+                app.font_particles.remove(part)
+                
+            
+
         # ---- PARTICLES
 
 
 
         # --------------- GUI ------------- #
             # TODO ADD HEALTHBAR, CURRENT ITEM 
+
+        #load_map_text = utils.text_surface_1(f'load map', 6, False, s.WHITE, font_path=app.fonts['font_0'])
+        #display.blit(load_map_text, (s.SCREEN_CENTER[0] - load_map_text.get_width()//2, 40))
 
         # ------ BLIT SCREENS ------ #
 
