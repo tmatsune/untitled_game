@@ -68,3 +68,10 @@ def add_hit_spark(pos, angle, color=(250, 250, 130)):
     # speed_decay, length, length_decay, color ]
     return [pos.copy(), angle, 3, random.randrange(2, 3), random.uniform(.14, .2), 
             0.92, random.randrange(3, 5), random.uniform(.92, .98),color]
+
+
+def add_shot_spark(pos, angle, color=(250, 250, 130)):
+    # [ pos, angle, speed, width, width_decay,
+    # speed_decay, length, length_decay, color ]
+    return [pos.copy(), angle, 5, random.randrange(1, 2), random.uniform(.2, .26),
+            0.96, random.randrange(2, 3), random.uniform(.92, .96), color]

@@ -212,12 +212,28 @@ class Player(Entity):
                 self.type,
                 None,
             ])
+            hit_spark = utils.add_shot_spark([self.center()[0]-1, self.center()[1]], 0)
+            self.app.sparks.append(hit_spark)
 
     def attack_2(self, left):
         if left:
-            print('special left')
+            self.app.projectiles.append([
+                [self.center()[0]-0, self.center()[1]],
+                [0, 0],
+                'player_attack_2',
+                self.type,
+                None,
+                left,
+            ])
         else:
-            print('special right')
+            self.app.projectiles.append([
+                [self.center()[0]+0, self.center()[1]],
+                [0, 0],
+                'player_attack_2',
+                self.type,
+                None,
+                left
+            ])
 
 
 class Enemy(Entity):

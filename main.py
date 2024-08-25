@@ -289,7 +289,7 @@ def main_game_loop():
         
 
 
-        # [  pos, vel, proj_type, from, image  ]
+        # [  pos, vel, proj_type, from, image , flip ]
         remove_list = []
         for i, proj in enumerate(app.projectiles):
             proj[0][0] += proj[1][0]
@@ -299,7 +299,9 @@ def main_game_loop():
                 pass
                 #for entity in app.entities:
                 
-            if proj[2] in {'player_attack_1'}:
+
+
+            if proj[2] == 'player_attack_1':
                 pg.draw.rect(display, (230, 230, 0), (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1], 1,1))
                 player_attack_rect = pg.Rect([proj[0][0], proj[0][1], 1, 1])
                 for entity in app.entities:
@@ -315,9 +317,27 @@ def main_game_loop():
                         app.font_particles.append([proj[0].copy(), [0, -1], 'basic', str(app.player.attack_1_damage), 6, s.WHITE, 1.4, .92])
                         remove_list.append(proj)
 
+            elif proj[2] == 'player_attack_2':
+                width = s.WIDTH 
+                attack_2_offset = 0 if not proj[5] else -s.WIDTH
+                pg.draw.rect(display, (230, 230, 0), (proj[0][0] - app.offset[0] + attack_2_offset, proj[0][1] - app.offset[1], width,1))
+                player_attack_rect = pg.Rect([proj[0][0], proj[0][1], s.WIDTH, 1])
+                for entity in app.entities:
+                    entity_rect: pg.Rect = entity.rect()
+                    if entity_rect.colliderect(player_attack_rect):
+                        for i in range(3):
+                            ang = 0 if proj[1][0] < 0 else PI
+                            ang += random.uniform(-PI_6, PI_6)
+                            hit_spark = utils.add_hit_spark(entity.pos.copy(), ang)
+                            app.sparks.append(hit_spark)
+                        entity.take_damage(app.player.attack_1_damage, -1 if proj[1][0] < 0 else 1)
+                        app.font_particles.append([entity.pos.copy(), [0, -1], 'basic', str(app.player.attack_1_damage), 6, s.WHITE, 1.4, .92])
+                        remove_list.append(proj)
+
+
 
             if proj[4]:
-                display.blit(proj[4], (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1]))
+                display.blit(proj[4], (proj[0][0] - app.offset[0] , proj[0][1] - app.offset[1]))
 
             if proj[0][0] - app.offset[0] < 0 or proj[0][0] - app.offset[0] > s.WIDTH:
                 remove_list.append(proj)
@@ -372,7 +392,7 @@ def main_game_loop():
 
             if part[6] < .1:
                 app.font_particles.remove(part)
-                
+
             
 
         # ---- PARTICLES
