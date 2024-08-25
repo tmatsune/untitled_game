@@ -8,17 +8,20 @@ class AnimationData:
         self.animations_data = {}
         self.animations = {}
         for anim in os.listdir(path):
-            self.animations_data[anim] = {'images': [], 'config': None}
+            self.animations_data[anim] = {'images': [], 'config': None, 'image_path': []}
             full_path = f'{path}/{anim}/'
             for img in os.listdir(path + '/' + anim):
                 if img.split('.')[-1] == 'png':
-                    self.animations_data[anim]['images'].append(
-                        utils.get_image(full_path+img, [s.CELL_SIZE, s.CELL_SIZE]))
+                    self.animations_data[anim]['images'].append(utils.get_image(full_path+img, [s.CELL_SIZE, s.CELL_SIZE]))
+                    self.animations_data[anim]['image_path'].append(full_path+img)
                 else:
                     f = open(full_path + img, 'r')
                     config = json.loads(f.read()) 
                     f.close()
                     self.animations_data[anim]['config'] = config
+            for i in range(len(self.animations_data[anim]['images'])):
+                self.animations_data[anim]['images'][i] = utils.get_image(self.animations_data[anim]['image_path'][i], 
+                                                                          self.animations_data[anim]['config']['size'])
         self.create_animations()
 
     def create_animations(self):

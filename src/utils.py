@@ -60,3 +60,11 @@ def distance(a, b):
 
 def mask_collision(mask1, a: list, mask2, b: list): return mask2.overlap(
     mask1, (a[0] - b[0], a[1] - b[1]))
+
+
+# ---- PARTICLES 
+def add_hit_spark(pos, angle, color=(250, 250, 130)):
+    # [ pos, angle, speed, width, width_decay, 
+    # speed_decay, length, length_decay, color ]
+    return [pos.copy(), angle, 3, random.randrange(2, 3), random.uniform(.14, .2), 
+            0.92, random.randrange(3, 5), random.uniform(.92, .98),color]

@@ -11,6 +11,11 @@ import src.inputs as inputs
 CUSTOM_GAME_FRAMEWORK: VERSION 1.0
 '''
 game_name = 'untitled game'
+PI = math.pi 
+PI2 = 2*math.pi
+PI_2 = math.pi/2
+PI3_2 = (3*math.pi)/2
+PI_6 = math.pi/6
 
 class App:
     def __init__(self) -> None:
@@ -19,6 +24,7 @@ class App:
         self.screenshake = 0 
         self.total_time = 0 
         self.level = None
+
         self.run_loop = False
         self.left_clicked = False
         self.right_clicked = False
@@ -28,10 +34,12 @@ class App:
         self.level_time = -1
 
         # ---- LIST VARS
-        self.particles = []
         self.projectiles = [] 
+        self.particles = []
         self.circles = []
         self.circle_particles = [] 
+        self.sparks = []
+
         self.offset = [0,0] 
         self.user_inputs = [False, False, False, False]
         self.edges = [s.inf, s.n_inf, s.inf, s.n_inf]  # x, -x, y, -y
@@ -84,17 +92,26 @@ class App:
             if data[1] == 'player_marker.png':
                 player_starting_pos = [key[0]*s.CELL_SIZE, key[1]*s.CELL_SIZE]
                 del markers[key]
-        self.player = entities.Player(self, player_starting_pos, [s.CELL_SIZE, s.CELL_SIZE], 'player', True)
+        self.player = entities.Player(self, player_starting_pos, [12,12], 'player', True)
 
 # ---- INIT PG
 pg.init()
 screen: pg.display = pg.display.set_mode((s.SCREEN_WIDTH, s.SCREEN_HEIGHT))
 display: pg.Surface = pg.Surface((s.WIDTH, s.HEIGHT))
 clock: pg.time = pg.time.Clock()
+bg_images = []
+for bg in os.listdir(s.BG_PATH):
+    bg_images.append(utils.get_image(s.BG_PATH + bg, [s.WIDTH, s.HEIGHT]))
         
 app = App()
-
 tile_map = tilemap.TileMap(app)
+
+global enemy_types 
+enemy_types = {
+    'ground': ['ground_enemy_0', 'ground_enemy_1', 'ground_enemy_2',],
+    'flying': ['flying_enemy_0', 'flying_enemy_1', 'flying_enemy_2',],
+}
+
 
 all_maps = []
 for level in os.listdir(s.MAP_PATH):
@@ -151,17 +168,24 @@ def menu_loop():
     pass
 
 def main_game_loop():
+    # INIT DATA 
     app.load_level(all_maps[0])
     app.run_loop = True
 
+    app.entities.append(entities.Enemy(app, [180,10], [18,18], 'ground_enemy_0', True))
+
     while app.run_loop:
+        # --- UPDATE/INPUTS
         run()
 
         # ------- BACKGROUND DATA ----- # 
-        display.fill(s.TEST_COLOR)
+        
+        display.blit(bg_images[0], (0,0))
+
         # TODO CLOUDS
 
         # ---------- UPDATE ----------- #
+        app.total_time += 1
 
         # --- inputs 
         app.inputs.handle_inputs()
@@ -173,6 +197,9 @@ def main_game_loop():
         # TODO LEVEL MANAGEMENT 
 
         # ---- SCROLL OFFSET 
+
+
+
         app.offset[0] += ((app.player.pos[0] - s.WIDTH // 2) - app.offset[0]) / 12
         app.offset[1] += ((app.player.pos[1] - s.HEIGHT // 2) - app.offset[1]) / 12
 
@@ -186,35 +213,75 @@ def main_game_loop():
         if app.offset[1] + s.HEIGHT > app.edges[3]:
             app.offset[1] = app.edges[3] - s.HEIGHT
 
+
+
+
         # -------- RENDER TILES / PLAYER ------- # 
+
+
 
         layers = app.tile_map.get_visible_tiles(app.offset)
         for key, layer in layers.items():
             for tile in layer:
                 real_pos = [tile[0][0] * s.CELL_SIZE, tile[0][1] * s.CELL_SIZE]
                 display.blit(tile[-1], (real_pos[0] - app.offset[0], real_pos[1] - app.offset[1]))
+                #pg.draw.rect(display, s.RED,(real_pos[0] - app.offset[0], real_pos[1] - app.offset[1], s.CELL_SIZE, s.CELL_SIZE), 1)
+
+
 
         # ---- PLAYER 
+
+
 
         app.player.update()
         app.player.render(display, app.offset)
 
+
+
         # --------- HANDLE ITEMS -------- #
+
+
+
             # TODO ITEM COLLISIONS
             # TODO ITEM FROM PLAYER DIST 
 
+
+
         # --------- RENDER / UPDATE ENTITIES ------- # 
-            # TODO RENDER ENTITIES 
+
+
+
+
+        for entity in app.entities.copy():
+            entity.update()
+            entity.render(display, app.offset)
+            
             # TODO AI / COLLISIONS FOR ENTITIES
 
+
+
         # --------- HANDLE SHIELDS -------- #
+
+
+
             # TODO RENDER SHIELDS IF PLAYER HAS 
 
+
+
         # --------- HANDLE DRONES -------- #
+
+
+
+
             # TODO RENDER DRONES IF PLAYER HAS
+
+
+
 
         # --------- RENDER/UPDATE PROJECTILES -------- #
         
+
+
         # [  pos, vel, proj_type, from, image  ]
         remove_list = []
         for i, proj in enumerate(app.projectiles):
@@ -225,12 +292,18 @@ def main_game_loop():
                 for entity in app.entities:
                     pass
             if proj[2] in {'player_attack_1'}:
-                pg.draw.rect(display, (230, 230, 0), (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1], 2, 2))
-                player_attack_rect = pg.Rect([proj[0][0], proj[0][1], 2, 2])
+                pg.draw.rect(display, (230, 230, 0), (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1], 1,1))
+                player_attack_rect = pg.Rect([proj[0][0], proj[0][1], 1, 1])
                 for entity in app.entities:
                     entity_rect: pg.Rect = entity.rect()
                     if entity_rect.colliderect(player_attack_rect):
-                        pass
+                        for i in range(3):
+                            ang = 0 if proj[1][0] < 0 else math.pi
+                            ang += random.uniform(-PI_6, PI_6)
+                            hit_spark = utils.add_hit_spark(proj[0], ang)
+                            app.sparks.append(hit_spark)
+                        entity.take_damage(app.player.attack_1_damage)
+                        remove_list.append(proj)
 
             if proj[4]:
                 display.blit(proj[4], (proj[0][0] - app.offset[0], proj[0][1] - app.offset[1]))
@@ -242,14 +315,45 @@ def main_game_loop():
         for proj in remove_list:
             app.projectiles.remove(proj)
 
+
+
+
         # --------- RENDER/UPDATE PARTICLES -------- #
-            # TODO RENDER PARTICLES
-            # TODO PARTICLE COLLISIONS
+        
+        # ---- CIRCLES 
+        # ---- CIRCLE PARTICLES 
+
+        # ---- SPARKS
+        # [ pos, angle, speed, width, width_decay, speed_decay, length, length_decay, color ]
+        for spark in app.sparks.copy():
+            spark[0][0] += math.cos(spark[1]) * spark[2]
+            spark[0][1] += math.sin(spark[1]) * spark[2]
+            spark[3] -= spark[4] # sub width by decay 
+            spark[2] *= spark[5] # decrase speed by speed decay 
+            spark[6] *= spark[7] # decrease lenght by mult of lngth decay 
+
+            if spark[3] <= 0:
+                app.sparks.remove(spark)
+                continue
+            points = [
+                (spark[0][0] + math.cos(spark[1]) * spark[6], spark[0][1] + math.sin(spark[1]) * spark[6]),
+                (spark[0][0] + math.cos(spark[1] + math.pi / 2) * spark[3], spark[0][1] + math.sin(spark[1] + math.pi / 2) * spark[3]),
+                (spark[0][0] - math.cos(spark[1]) * spark[6], spark[0][1] - math.sin(spark[1]) * spark[6]),
+                (spark[0][0] + math.cos(spark[1] - math.pi / 2) * spark[3], spark[0][1] + math.sin(spark[1] - math.pi / 2) * spark[3]),
+            ]
+            points = [(p[0] - app.offset[0], p[1] - app.offset[1]) for p in points]
+            color = spark[8] if spark[8] else (247, 180, 0)
+            pg.draw.polygon(display, color, points)
+
+        # ---- PARTICLES
+
+
 
         # --------------- GUI ------------- #
             # TODO ADD HEALTHBAR, CURRENT ITEM 
 
         # ------ BLIT SCREENS ------ #
+
         screenshake_offset = [0,0]
         if app.screenshake > 0:
             app.screenshake -= 1

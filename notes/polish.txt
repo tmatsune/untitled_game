@@ -1,0 +1,10 @@
+
+Player:
+    sprites for all actions 
+    roll, shooting, 
+
+Gameplay: 
+    damage number flys up screen 
+    projectile hit 
+    shooting sparks
+    

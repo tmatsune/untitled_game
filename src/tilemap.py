@@ -85,6 +85,34 @@ class TileMap:
                         tiles.append(pg.Rect(key[0] * s.CELL_SIZE, key[1] * s.CELL_SIZE, s.CELL_SIZE, s.CELL_SIZE))
         return tiles
 
+
+    def get_nearby_tiles_2(self, pos, surf, off):
+        p = [int(pos[0] // s.CELL_SIZE), int(pos[1] // s.CELL_SIZE)]
+        tiles = []
+        for offset in NEARBY_OFFSET:
+            key = (p[0] + offset[0], p[1] + offset[1])
+            if key in self.tiles:
+                for layer in self.tiles[key]:
+                    if self.tiles[key][layer][2] in {'tileset_0', 'tileset_1'}:
+                        tiles.append(pg.Rect(key[0] * s.CELL_SIZE, key[1] * s.CELL_SIZE, s.CELL_SIZE, s.CELL_SIZE))
+            pg.draw.rect(surf, s.RED, 
+                                     ((key[0] * s.CELL_SIZE) - off[0], (key[1] * s.CELL_SIZE) - off[1], s.CELL_SIZE, s.CELL_SIZE), 1)
+        return tiles
+    
+    def get_nearby_tiles_diff_size(self, pos, surf, off):
+        p = [int(pos[0] // s.CELL_SIZE)-1, int(pos[1] // s.CELL_SIZE)]
+        tiles = []
+        for i in range(3):
+            key = (p[0] + i, p[1] + i)
+            if key in self.tiles:
+                for layer in self.tiles[key]:
+                    if self.tiles[key][layer][2] in {'tileset_0', 'tileset_1'}:
+                        tiles.append(
+                            pg.Rect(key[0] * s.CELL_SIZE, key[1] * s.CELL_SIZE, s.CELL_SIZE, s.CELL_SIZE))
+                        pg.draw.rect(surf, s.RED,
+                                     ((key[0] * s.CELL_SIZE) - off[0], (key[1] * s.CELL_SIZE) - off[1], s.CELL_SIZE, s.CELL_SIZE), 1)
+        return tiles
+    
     def load_map(self, map_name):
         self.reset_map()
         new_tiles = {}
@@ -101,7 +129,7 @@ class TileMap:
 
             for layer, tile in layers.items():
                 tile.append(utils.get_image(tile[3], tile[4]['size']))
-                tile.insert(0, (key[0]*s.CELL_SIZE, key[1]*s.CELL_SIZE))
+                tile.insert(0, (key[0]*tile[4]['size'], key[1]*tile[4]['size']))
                 new_tiles[key][layer] = tile
 
         if 'markers' in map_data:
