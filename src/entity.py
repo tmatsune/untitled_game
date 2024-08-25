@@ -1,5 +1,6 @@
-import pygame as pg 
+import pygame as pg, math 
 import src.settings as s
+import src.utils as utils
 
 class Entity:
     def __init__(self, app, pos, size, type, animated=None) -> None:
@@ -19,6 +20,8 @@ class Entity:
         self.health = self.max_health
         self.reset_hurt_time = s.DEFAULT_HURT_TIME
         self.hurt_time = self.reset_hurt_time
+
+        self.knock_back = [1,0]
 
         # ---- VAR BOOLS
         self.flip = False
@@ -53,7 +56,10 @@ class Entity:
         if not self.hurt:
             surf.blit(image, (self.pos[0] - offset[0], self.pos[1] - offset[1]))
         else:
-            pass
+            if math.sin(self.app.total_time) > 0:
+                sil = utils.silhouette(image)
+                surf.blit(
+                    sil, (self.pos[0] - offset[0], self.pos[1] - offset[1]))
 
         #pg.draw.rect(surf, (255,120,0), (self.pos[0] - offset[0], self.pos[1] - offset[1], self.size[0], self.size[1]), 1) # TEST
         #pg.draw.circle(surf, (255, 0, 0), (self.center()[0] - offset[0], self.center()[1] - offset[1]), 1)             # TEST
@@ -77,7 +83,8 @@ class Entity:
             self.anim = self.animation_data.animations[state].copy()
 
     def movement(self, vel, tiles):
-        self.pos[0] += vel[0]
+        
+        self.pos[0] += vel[0] 
         hitable_tiles = self.get_tile_hits(self.rect(), tiles)
         curr_rect = self.rect()
         directions = {'left': False, 'right': False, 'up': False, 'down': False}
@@ -134,9 +141,10 @@ class Entity:
             if collisions['down']:
                 self.change_state('idle')
 
-    def take_damage(self, amount, force=0):
+    def take_damage(self, amount, direct):
         self.health -= amount
-        print(self.health)
+        self.hurt = True
+        self.knock_back = [1.5, direct]
     
 class Player(Entity):
     def __init__(self, app, pos, size, type, animated=None) -> None:
@@ -224,6 +232,14 @@ class Enemy(Entity):
         super().update()
 
         self.vel[1] = min(10, self.vel[1] + 1)
+
+        if self.knock_back[0] > 1:
+            self.knock_back[0] -= .1 
+            if self.vel[0] == 0: self.vel[0] = self.knock_back[1]
+            self.vel[0] *= 1 * self.knock_back[0]
+        if self.knock_back[0] <= 1:
+            self.vel[0] = 0
+            self.knock_back[0] = 1
 
         nearby_rects = self.app.tile_map.get_nearby_tiles(self.pos)
         collisions = self.movement(self.vel, nearby_rects)

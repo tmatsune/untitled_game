@@ -172,7 +172,7 @@ def main_game_loop():
     app.load_level(all_maps[0])
     app.run_loop = True
 
-    app.entities.append(entities.Enemy(app, [180,10], [18,18], 'ground_enemy_0', True))
+    app.entities.append(entities.Enemy(app, [190,10], [16,16], 'ground_enemy_0', True))
 
     while app.run_loop:
         # --- UPDATE/INPUTS
@@ -225,7 +225,6 @@ def main_game_loop():
             for tile in layer:
                 real_pos = [tile[0][0] * s.CELL_SIZE, tile[0][1] * s.CELL_SIZE]
                 display.blit(tile[-1], (real_pos[0] - app.offset[0], real_pos[1] - app.offset[1]))
-                #pg.draw.rect(display, s.RED,(real_pos[0] - app.offset[0], real_pos[1] - app.offset[1], s.CELL_SIZE, s.CELL_SIZE), 1)
 
 
 
@@ -302,7 +301,7 @@ def main_game_loop():
                             ang += random.uniform(-PI_6, PI_6)
                             hit_spark = utils.add_hit_spark(proj[0], ang)
                             app.sparks.append(hit_spark)
-                        entity.take_damage(app.player.attack_1_damage)
+                        entity.take_damage(app.player.attack_1_damage, -1 if proj[1][0] < 0 else 1)
                         remove_list.append(proj)
 
             if proj[4]:

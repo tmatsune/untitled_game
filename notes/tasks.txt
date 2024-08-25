@@ -2,4 +2,3 @@ Goals for Day:
     - add hit effects
     - add knockback 
     - add second attack 
-    - add hit effect when hit
